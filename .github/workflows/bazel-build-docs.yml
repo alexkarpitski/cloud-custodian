@@ -2,22 +2,39 @@ name: Bazel build docs
 on: [pull_request]
 
 jobs:
-  build:
-    name: Build (c7n_sphinxext)
+  sphinxext_gen:
     runs-on: ubuntu-18.04
+    name: Build (c7n_sphinxext)
+    container:
+      image: rushrecon/bazel2py:3.0.0
+      #
+      # Paths for cached directories described in https://docs.bazel.build/versions/master/output_directories.html#current-layout
+      # MD5 hash of repo directory(i.e. '/__w/cloud-custodian/cloud-custodian') is gotten by using the next one-liner:
+      # $ python3 -c "import hashlib;print(hashlib.md5(b'/__w/cloud-custodian/cloud-custodian').hexdigest())"
+      #
+      volumes:
+        - /tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/external:/tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/external
+        - /tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/execroot:/tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/execroot
+        - /tmp/out:/tmp/out
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Build a docker image with bazel
-        run: docker build -f Docker-bazel-exec -t my-baz .
-      - name: Run a container with the image
-        run: docker run -dit -v /tmp/output_build:/tmp/output_build --name baz my-baz
+      - name: Mount external cache
+        uses: actions/cache@v1
+        with:
+          path: "/tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/external"
+          key: bazel-ext
+      - name: Mount execroot cache
+        uses: actions/cache@v1
+        with:
+          path: "/tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/execroot"
+          key: bazel-exec-docs
       - name: Execute bazel build //tools/c7n_sphinxext/c7n_sphinxext:sphinx_gen
-        run: |
-          docker exec -t baz bazel --output_user_root=/tmp/output_build build //tools/c7n_sphinxext/c7n_sphinxext:sphinx_gen
-          sudo find /tmp/output_build/ -name 'html' -exec cp -n -at /tmp {} +
+        run: bazel --output_user_root=/tmp/output_build build //tools/c7n_sphinxext/c7n_sphinxext:sphinx_gen
+      - name: Collect HTML docs
+        run: find /tmp/output_build/ -name 'html' -exec cp -n -at /tmp/out {} +
       - name: Upload docs into artifacts
         uses: actions/upload-artifact@v1
         with:
           name: Html docs
-          path: /tmp/html
+          path: /tmp/out/html

@@ -3,18 +3,37 @@ on: [pull_request]
 
 jobs:
   test:
-    name: Test
     strategy:
       matrix:
-        worker: ['tests:first_chunk', 'tests:second_chunk', 'tools/c7n_azure/tests_azure',
-                 'tools/c7n_gcp/tests', 'tools/c7n_kube/tests', 'tools/c7n_mailer/tests']
+        worker: [
+          { name: 'c7n_first_test', path: 'tests:first_chunk', cache: 'aws'},
+          { name: 'c7n_second_test', path: 'tests:second_chunk', cache: 'aws'},
+          { name: 'c7n_third_test', path: 'tests:third_chunk', cache: 'aws'},
+          { name: 'c7n_fourth_test', path: 'tests:fourth_chunk', cache: 'aws'},
+          { name: 'c7n_azure_test', path: 'tools/c7n_azure/tests_azure', cache: 'azure' },
+          { name: 'c7n_gcp_test', path: 'tools/c7n_gcp/tests', cache: 'gcp'},
+          { name: 'c7n_kube_test', path: 'tools/c7n_kube/tests', cache: 'kube'},
+          { name: 'c7n_mailer_test', path: 'tools/c7n_mailer/tests', cache: 'mailer'},
+        ]
     runs-on: ubuntu-18.04
+    name: Test
+    container:
+      image: rushrecon/bazel2py:3.0.0
+      #
+      # Paths for cached directories described in https://docs.bazel.build/versions/master/output_directories.html#current-layout
+      # MD5 hash of repo directory(i.e. '/__w/cloud-custodian/cloud-custodian') is gotten by using the next one-liner:
+      # $ python3 -c "import hashlib;print(hashlib.md5(b'/__w/cloud-custodian/cloud-custodian').hexdigest())"
+      #
+      volumes:
+        - /tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/external:/tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/external
+        # - /tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/execroot:/tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/execroot
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Build a docker image with bazel
-        run: docker build -f Docker-bazel-exec -t my-baz .
-      - name: Run a container with the image
-        run: docker run -dit -v /tmp/output_build:/tmp/output_build --name baz my-baz
-      - name: Execute bazel test //${{ matrix.worker }}
-        run: docker exec -t baz bazel --output_user_root=/tmp/output_build test //${{ matrix.worker }}
+      - name: Mount external cache
+        uses: actions/cache@v1
+        with:
+          path: "/tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/external"
+          key: bazel-ext-${{ matrix.worker.cache }}
+      - name: Execute bazel test //${{ matrix.worker.name }}
+        run: bazel --output_user_root=/tmp/output_build test //${{ matrix.worker.path }}

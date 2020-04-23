@@ -3,18 +3,34 @@ on: [pull_request]
 
 jobs:
   build:
-    name: Expect failures for excluded tests in bazel
     runs-on: ubuntu-18.04
+    name: Expect failures for excluded tests in bazel
+    container:
+      image: rushrecon/bazel2py:3.0.0
+      #
+      # Paths for cached directories described in https://docs.bazel.build/versions/master/output_directories.html#current-layout
+      # MD5 hash of repo directory(i.e. '/__w/cloud-custodian/cloud-custodian') is gotten by using the next one-liner:
+      # $ python3 -c "import hashlib;print(hashlib.md5(b'/__w/cloud-custodian/cloud-custodian').hexdigest())"
+      #
+      volumes:
+        - /tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/external:/tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/external
+        - /tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/execroot:/tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/execroot
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Mount external cache
+        uses: actions/cache@v1
+        with:
+          path: "/tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/external"
+          key: bazel-ext
+      - name: Mount execroot cache
+        uses: actions/cache@v1
+        with:
+          path: "/tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/execroot"
+          key: bazel-exec-fail
       - name: Unexclude specified tests in //tests:BUILD
         run: sed 's/"test_(cli|output).py",//' -i --regexp-extended tests/BUILD
-      - name: Build a docker image with bazel included
-        run: docker build -f Docker-bazel-exec -t my-baz .
-      - name: Run a container with the image
-        run: docker run -dit -v /tmp/output_build:/tmp/output_build --name baz my-baz
       - name: Expect failing bazel test //tests:test_cli
-        run: docker exec -t baz bazel --output_user_root=/tmp/output_build test //tests:test_cli && exit 1 || exit 0
+        run: bazel --output_user_root=/tmp/output_build test //tests:test_cli && exit 1 || exit 0
       - name: Expect failing bazel test //tests:test_output
-        run: docker exec -t baz bazel --output_user_root=/tmp/output_build test //tests:test_output && exit 1 || exit 0
+        run: bazel --output_user_root=/tmp/output_build test //tests:test_output && exit 1 || exit 0

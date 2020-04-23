@@ -3,27 +3,41 @@ on: [pull_request]
 
 jobs:
   coverage:
-    name: Coverage
     strategy:
       matrix:
         worker: [
-          { name: 'c7n_first', path: 'tests:first_chunk' },
-          { name: 'c7n_second', path: 'tests:second_chunk'},
-          { name: 'c7n_azure', path: 'tools/c7n_azure/tests_azure' },
-          { name: 'c7n_gcp', path: 'tools/c7n_gcp/tests' },
-          { name: 'c7n_kube', path: 'tools/c7n_kube/tests' },
-          { name: 'c7n_mailer', path: 'tools/c7n_mailer/tests' },
+          { name: 'c7n_first', path: 'tests:first_chunk', cache: 'aws'},
+          { name: 'c7n_second', path: 'tests:second_chunk', cache: 'aws'},
+          { name: 'c7n_third', path: 'tests:third_chunk', cache: 'aws'},
+          { name: 'c7n_fourth', path: 'tests:fourth_chunk', cache: 'aws'},
+          { name: 'c7n_azure', path: 'tools/c7n_azure/tests_azure', cache: 'azure' },
+          { name: 'c7n_gcp', path: 'tools/c7n_gcp/tests', cache: 'gcp'},
+          { name: 'c7n_kube', path: 'tools/c7n_kube/tests', cache: 'kube'},
+          { name: 'c7n_mailer', path: 'tools/c7n_mailer/tests', cache: 'mailer'},
         ]
     runs-on: ubuntu-18.04
+    name: Coverage
+    container:
+      image: rushrecon/bazel2py:3.0.0
+      #
+      # Paths for cached directories described in https://docs.bazel.build/versions/master/output_directories.html#current-layout
+      # MD5 hash of repo directory(i.e. '/__w/cloud-custodian/cloud-custodian') is gotten by using the next one-liner:
+      # $ python3 -c "import hashlib;print(hashlib.md5(b'/__w/cloud-custodian/cloud-custodian').hexdigest())"
+      #
+      volumes:
+        - /tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/external:/tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/external
+        # - /tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/execroot:/tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/execroot
+        - /tmp/C7N-cov:/tmp/C7N-cov
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Build a docker image with bazel
-        run: docker build -f Docker-bazel-exec -t my-baz .
-      - name: Run a container with the image
-        run: docker run -dit -v /tmp/output_build:/tmp/output_build -v /tmp/C7N-cov:/tmp/C7N-cov --name baz my-baz
+      - name: Mount external cache
+        uses: actions/cache@v1
+        with:
+          path: "/tmp/output_build/2ea0736f19907bdbf0b696f1c9b02a37/external"
+          key: bazel-ext-${{matrix.worker.cache}}
       - name: Execute bazel coverage //${{ matrix.worker.path }}
-        run: docker exec -t baz bazel --output_user_root=/tmp/output_build coverage //${{ matrix.worker.path }}
+        run: bazel --output_user_root=/tmp/output_build coverage //${{ matrix.worker.path }}
       - name: Add coverage data files to zip archive
         run: find /tmp/C7N-cov/ -type f -name '.coverage*' -print | zip ${{ matrix.worker.name }} -@
       - name: Upload zip archive into artifact
@@ -35,15 +49,20 @@ jobs:
     name: Coverage report
     needs: coverage
     runs-on: ubuntu-18.04
+    container:
+      image: rushrecon/bazel2py:3.0.0
+      env:
+        COVERAGE_FILE: /tmp/C7N-cov/.coverage
+      #
+      # Paths for cached directories described in https://docs.bazel.build/versions/master/output_directories.html#current-layout
+      # MD5 hash of repo directory(i.e. '/__w/cloud-custodian/cloud-custodian') is gotten by using the next one-liner:
+      # $ python3 -c "import hashlib;print(hashlib.md5(b'/__w/cloud-custodian/cloud-custodian').hexdigest())"
+      #
+      volumes:
+        - /tmp/C7N-cov:/tmp/C7N-cov
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Build a docker image with bazel
-        run: docker build -f Docker-bazel-exec -t my-baz .
-      - name: Run a container with the image
-        run: docker run -dit -v /tmp/output_build:/tmp/output_build -v /tmp/C7N-cov:/tmp/C7N-cov --name baz my-baz
-      - name: Install coverage
-        run: docker exec -t baz pip3 install coverage
       - name: Download zip coverage data for c7n_first
         uses: actions/download-artifact@v1
         with:
@@ -52,6 +71,14 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: c7n_second_cov_data
+      - name: Download zip coverage data for c7n_third
+        uses: actions/download-artifact@v1
+        with:
+          name: c7n_third_cov_data
+      - name: Download zip coverage data for c7n_fourth
+        uses: actions/download-artifact@v1
+        with:
+          name: c7n_fourth_cov_data
       - name: Download zip coverage data for c7n_azure
         uses: actions/download-artifact@v1
         with:
@@ -70,21 +97,24 @@ jobs:
           name: c7n_mailer_cov_data
       - name: Unzip coverage data
         run: |
-          unzip c7n_first_cov_data/c7n_first.zip
-          unzip c7n_second_cov_data/c7n_second.zip
-          unzip c7n_azure_cov_data/c7n_azure.zip
-          unzip c7n_gcp_cov_data/c7n_gcp.zip
-          unzip c7n_kube_cov_data/c7n_kube.zip
-          unzip c7n_mailer_cov_data/c7n_mailer.zip
+          unzip c7n_first_cov_data/c7n_first.zip -d /
+          unzip c7n_second_cov_data/c7n_second.zip -d /
+          unzip c7n_third_cov_data/c7n_third.zip -d /
+          unzip c7n_fourth_cov_data/c7n_fourth.zip -d /
+          unzip c7n_azure_cov_data/c7n_azure.zip -d /
+          unzip c7n_gcp_cov_data/c7n_gcp.zip -d /
+          unzip c7n_kube_cov_data/c7n_kube.zip -d /
+          unzip c7n_mailer_cov_data/c7n_mailer.zip -d /
+      - name: Moving files
+        run:  find /tmp/C7N-cov -type f -name '.coverage*' -exec cp -at /tmp/C7N-cov {} +
       - name: Generate coverage report
-        run: |
-          sudo find tmp/C7N-cov -type f -name '.coverage*' -exec cp -at /tmp/C7N-cov {} +
-          docker exec -t -e COVERAGE_FILE=/tmp/C7N-cov/.coverage baz coverage combine /tmp/C7N-cov
-          docker exec -t -e COVERAGE_FILE=/tmp/C7N-cov/.coverage baz coverage html -d /tmp/C7N-cov/htmlcov --skip-empty
+        run:  coverage combine /tmp/C7N-cov
+      - name: Generate coverage report HTML
+        run:  coverage html -debug -i -d /tmp/C7N-cov/htmlcov --skip-empty
       - name: Upload coverage report
         uses: actions/upload-artifact@v1
         with:
           name: HTML coverage report
           path: /tmp/C7N-cov/htmlcov
-      - name: Coverage results
-        run: docker exec -t -e COVERAGE_FILE=/tmp/C7N-cov/.coverage baz coverage report --skip-empty
+      - name: Show coverage results
+        run: coverage report --skip-empty
