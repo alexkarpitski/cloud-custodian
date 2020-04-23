@@ -14,7 +14,7 @@ def create_versions_bzl(ctx):
     versions = []
     for setup_file_name in ctx.attr.setup_files:
         ctx.file("tmp", content = ctx.read(setup_file_name))
-        version = ctx.execute(["grep", "-oP", "'version': \K'.*'", "tmp"]).stdout.strip()
+        version = ctx.execute(["grep", "-oP", "'version': \\K'.*'", "tmp"]).stdout.strip()
         versions.append("\"%s\":%s" % (setup_file_name, version))
     return VERSIONS_TEMPLATE % ",".join(versions)
 

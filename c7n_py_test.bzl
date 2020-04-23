@@ -8,9 +8,9 @@ def add_exclude_pkgs_command(excluded_pkgs):
     excluded_pkgs = "[%s]" % ",".join(excluded_pkgs)
     exclude_pkgs_command = \
         "| sed $'s/" + \
-        "  python_path_entries = \[GetWindowsPathWithUNCPrefix(d) for d in python_path_entries\]/" + \
-        "  python_path_entries = [GetWindowsPathWithUNCPrefix\(d\)" + \
-        " for d in python_path_entries if not list\(filter\(d.endswith, %s\)\)]/g'" % excluded_pkgs
+        "  python_path_entries = \\[GetWindowsPathWithUNCPrefix(d) for d in python_path_entries\\]/" + \
+        "  python_path_entries = [GetWindowsPathWithUNCPrefix\\(d\\)" + \
+        " for d in python_path_entries if not list\\(filter\\(d.endswith, %s\\)\\)]/g'" % excluded_pkgs
     return exclude_pkgs_command
 
 def _impl(ctx):
@@ -31,12 +31,12 @@ def _impl(ctx):
             "    os.chdir(\"..\")\\\n" +
             "  os.chdir(os.path.join(\"execroot\", \"%s\"))\\\n" % (ctx.workspace_name) +
             "  os.environ[\"COVERAGE_FILE\"] = os.path.join(cov_path, \".coverage\")\\\n" +
-            "  args = \[python_program, \"-m\", \"coverage\", \"run\", \"--rcfile\", \".bazel-coveragerc\", \"-m\", \"unittest\", \"%s.%s\"\] + args" % (test_pkg, test_name)
+            "  args = \\[python_program, \"-m\", \"coverage\", \"run\", \"--rcfile\", \".bazel-coveragerc\", \"-m\", \"unittest\", \"%s.%s\"\\] + args" % (test_pkg, test_name)
         )
     else:
         command = (
             "  os.chdir(os.path.join(module_space, \"%s\"))\\\n" % (ctx.workspace_name) +
-            "  args = \[python_program, \"-m\", \"unittest\", \"%s.%s\"\] + args" % (test_pkg, test_name)
+            "  args = \\[python_program, \"-m\", \"unittest\", \"%s.%s\"\\] + args" % (test_pkg, test_name)
         )
 
     ctx.actions.run_shell(
@@ -44,7 +44,7 @@ def _impl(ctx):
         # TODO: replace all *.inner mentions in file_to_run
         command =
             "sed $'s/" +
-            "  args = \[python_program, main_filename\] + args/" + command +
+            "  args = \\[python_program, main_filename\\] + args/" + command +
             " /g' '%s' %s > '%s'" % (old_runner.path, excluded_pkgs_command, new_runner.path),
         inputs = [old_runner],
         outputs = [new_runner],
