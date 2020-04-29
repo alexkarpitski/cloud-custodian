@@ -1,12 +1,12 @@
 load("@rules_python//experimental/python:wheel.bzl", "py_package", "py_wheel")
 
-FILE_HASH_SCRIPT_NAME = "file_hash.py"
+_FILE_HASH_SCRIPT_NAME = "file_hash.py"
 
 def _impl_a(ctx):
     inputs = ctx.attr.whl_file.data_runfiles.files.to_list()
     python_script_file = False
     for f in ctx.attr._add_ep_runner.data_runfiles.files.to_list():
-        if f.basename == FILE_HASH_SCRIPT_NAME:
+        if f.basename == _FILE_HASH_SCRIPT_NAME:
             python_script_file = f
             break
     if not python_script_file:
