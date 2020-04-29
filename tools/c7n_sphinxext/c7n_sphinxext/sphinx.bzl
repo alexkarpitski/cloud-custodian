@@ -1,4 +1,13 @@
-OutputDocs = provider(fields = ["files", "name"])
+OutputDocs = provider(
+    doc = """
+TODO: fill.
+A provider with some really neat documentation.
+
+Contains information about some of my favorite things.
+""",
+    fields = {'files' : 'TODO: fill',
+              'name' : 'TODO: fill'}
+)
 
 def add_exclude_pkgs_command(excluded_pkgs):
     """
