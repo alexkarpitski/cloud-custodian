@@ -28,4 +28,11 @@ setup_versions_repository = repository_rule(
     attrs = {
         "setup_files": attr.label_list(allow_files = True),
     },
+    doc = """
+TODO: fill.
+Example rule documentation.
+
+Example:
+  Here is an example of how to use this rule.
+"""
 )

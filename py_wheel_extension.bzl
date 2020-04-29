@@ -41,6 +41,13 @@ _add_entry_points = rule(
             default = ":run-add-ep-script",
         ),
     },
+    doc = """
+TODO: fill.
+Example rule documentation.
+
+Example:
+  Here is an example of how to use this rule.
+"""
 )
 
 def py_wheel_entry_points_ext(**kwargs):

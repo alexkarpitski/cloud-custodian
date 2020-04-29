@@ -137,6 +137,13 @@ sphinx_generate_docs = rule(
         ),
         "excluded_pkgs": attr.string_list(default = []),
     },
+    doc = """
+TODO: fill.
+Example rule documentation.
+
+Example:
+  Here is an example of how to use this rule.
+"""
 )
 
 #  Generate rst files from classes
@@ -169,4 +176,11 @@ docgen = rule(
             mandatory = True,
         ),
     },
+    doc = """
+TODO: fill.
+Example rule documentation.
+
+Example:
+  Here is an example of how to use this rule.
+"""
 )

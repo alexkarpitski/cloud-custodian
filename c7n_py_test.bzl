@@ -63,6 +63,13 @@ _py_test = rule(
         "excluded_pkgs": attr.string_list(default = []),
     },
     test = True,
+    doc = """
+TODO: fill.
+Example rule documentation.
+
+Example:
+  Here is an example of how to use this rule.
+"""
 )
 
 def c7n_py_test(name, **kwargs):
