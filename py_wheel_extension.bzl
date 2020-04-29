@@ -3,6 +3,9 @@ load("@rules_python//experimental/python:wheel.bzl", "py_package", "py_wheel")
 _FILE_HASH_SCRIPT_NAME = "file_hash.py"
 
 def _impl_a(ctx):
+    """
+    TODO: fill.
+    """
     inputs = ctx.attr.whl_file.data_runfiles.files.to_list()
     python_script_file = False
     for f in ctx.attr._add_ep_runner.data_runfiles.files.to_list():
@@ -51,6 +54,9 @@ Example:
 )
 
 def py_wheel_entry_points_ext(**kwargs):
+    """
+    TODO: fill.
+    """
     if kwargs.get("entry_points"):
         entry_points = kwargs.pop("entry_points")
     else:

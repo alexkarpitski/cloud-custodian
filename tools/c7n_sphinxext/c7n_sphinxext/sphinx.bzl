@@ -1,7 +1,10 @@
 OutputDocs = provider(fields = ["files", "name"])
 
 def add_exclude_pkgs_command(excluded_pkgs):
-    """If there are excluded packages, add extra sed command to exclude these pkges from runfile"""
+    """
+    TODO: fill.
+    If there are excluded packages, add extra sed command to exclude these pkges from runfile
+    """
     if excluded_pkgs == []:
         return ""
 
@@ -21,6 +24,9 @@ def add_exclude_pkgs_command(excluded_pkgs):
     return exclude_pkgs_command
 
 def patch_executable(ctx):
+    """
+    TODO: fill.
+    """
     old_runner = ctx.executable.tool
     new_runner = ctx.actions.declare_file(ctx.attr.name)
     excluded_pkgs_command = add_exclude_pkgs_command(ctx.attr.excluded_pkgs)
@@ -44,8 +50,11 @@ def patch_executable(ctx):
     )
     return new_runner, new_runfiles
 
-#   Copy external and generated files, generate html docs
 def _impl_sphinx_generated_docs(ctx):
+    """
+    TODO: fill.
+    Copy external and generated files, generate html docs
+    """
     ext_docs = ctx.actions.declare_directory("docs/")
     source = "/source"
     tools = "/tools"
@@ -146,8 +155,11 @@ Example:
 """
 )
 
-#  Generate rst files from classes
 def _impl_rst_files_gen(ctx):
+    """
+    TODO: fill.
+    Generate rst files from classes
+    """
     old_runner = ctx.executable.tool
     tree = ctx.actions.declare_directory(ctx.attr.provider + "/resources")
     ctx.actions.run(

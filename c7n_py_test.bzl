@@ -1,7 +1,10 @@
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 
 def add_exclude_pkgs_command(excluded_pkgs):
-    """If there are excluded packages, add extra sed command to exclude these pkges from runfile"""
+    """
+    TODO: fill.
+    If there are excluded packages, add extra sed command to exclude these pkges from runfile
+    """
     if excluded_pkgs == []:
         return ""
     excluded_pkgs = ["\"__%s\"" % i.replace("-", "_").replace(".", "_") for i in excluded_pkgs]
@@ -14,6 +17,9 @@ def add_exclude_pkgs_command(excluded_pkgs):
     return exclude_pkgs_command
 
 def _impl(ctx):
+    """
+    TODO: fill.
+    """
     old_runner = ctx.attr.test[DefaultInfo].files_to_run.executable
     new_runner = ctx.actions.declare_file(ctx.attr.name)
     excluded_pkgs_command = add_exclude_pkgs_command(ctx.attr.excluded_pkgs)
@@ -73,6 +79,9 @@ Example:
 )
 
 def c7n_py_test(name, **kwargs):
+    """
+    TODO: fill.
+    """
     inner_test_name = name + ".inner"
     tags = kwargs.pop("tags", default = [])
     main_name = kwargs.pop("name", default = name + ".py")
@@ -88,13 +97,14 @@ C7N_TESTS_CHUNKS = {
     "fourth_chunk": "test_workspaces",
 }
 
-"""
-We have a lot of tests of AWS, and to fit GitHub Actions worker limits,
-it's splitted for chunks, which is rougly equal in processing time and
-resource consumption.
-This function just goes through the list and divide it by test name.
-"""
 def get_chunk(test_file_name):
+    """
+    TODO: fill.
+    We have a lot of tests of AWS, and to fit GitHub Actions worker limits,
+    it's splitted for chunks, which is rougly equal in processing time and
+    resource consumption.
+    This function just goes through the list and divide it by test name.
+    """
     for chunk_name, last_test_in_chunk in C7N_TESTS_CHUNKS.items():
         if test_file_name <= last_test_in_chunk:
             return chunk_name

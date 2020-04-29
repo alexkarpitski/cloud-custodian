@@ -1,16 +1,19 @@
-# template for generating bzl-file
+# template for generating bzl-file TODO: consider switching to stardoc
 VERSIONS_TEMPLATE = """
 
 _versions = {%s}
 
 def setup_version(name):
-  if name not in _versions:
-    fail('Could not find setup version: '  + name)
-  return _versions[name]
+    if name not in _versions:
+        fail('Could not find setup version: '  + name)
+    return _versions[name]
 
 """
 
 def create_versions_bzl(ctx):
+    """
+    TODO: fill.
+    """
     versions = []
     for setup_file_name in ctx.attr.setup_files:
         ctx.file("tmp", content = ctx.read(setup_file_name))
@@ -19,6 +22,9 @@ def create_versions_bzl(ctx):
     return VERSIONS_TEMPLATE % ",".join(versions)
 
 def _version_repo_impl(ctx):
+    """
+    TODO: fill.
+    """
     ctx.file("versions.bzl", create_versions_bzl(ctx))
     ctx.file("BUILD.bazel", "")
 
