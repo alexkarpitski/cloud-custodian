@@ -2,9 +2,6 @@ load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("//:builddefs.bzl", "add_exclude_pkgs_command")
 
 def _impl(ctx):
-    """
-    TODO: fill.
-    """
     old_runner = ctx.attr.test[DefaultInfo].files_to_run.executable
     new_runner = ctx.actions.declare_file(ctx.attr.name)
     excluded_pkgs_command = add_exclude_pkgs_command(ctx.attr.excluded_pkgs)
@@ -54,18 +51,15 @@ _py_test = rule(
         "excluded_pkgs": attr.string_list(default = []),
     },
     test = True,
-    doc = """
-TODO: fill.
-Example rule documentation.
-
-Example:
-  Here is an example of how to use this rule.
-"""
 )
 
 def c7n_py_test(name, **kwargs):
-    """
-    TODO: fill.
+    """Calls the original py_test rule so that it creates runfiles, then patches them with _py_test.
+
+    _impl performs operations that resolve relative imports problems as well as supporting coverage collection.
+
+    Args:
+      name: The original test name.
     """
     inner_test_name = name + ".inner"
     tags = kwargs.pop("tags", default = [])
@@ -83,12 +77,13 @@ C7N_TESTS_CHUNKS = {
 }
 
 def get_chunk(test_file_name):
-    """
-    TODO: fill.
-    We have a lot of tests of AWS, and to fit GitHub Actions worker limits,
-    it's splitted for chunks, which is rougly equal in processing time and
-    resource consumption.
-    This function just goes through the list and divide it by test name.
+    """Returns a key from C7N_TESTS_CHUNKS if the associated value is less than or equal to the specified name.
+
+    We have a lot of tests of AWS, and to fit GitHub Actions worker limits, it is split into chunks,
+    which are roughly equal in processing time and resource consumption.
+
+    Args:
+      test_file_name: A string to find a key associated with a value closest to the string.
     """
     for chunk_name, last_test_in_chunk in C7N_TESTS_CHUNKS.items():
         if test_file_name <= last_test_in_chunk:
