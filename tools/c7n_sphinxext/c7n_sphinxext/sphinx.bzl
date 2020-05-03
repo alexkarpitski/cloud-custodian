@@ -154,14 +154,14 @@ A rule that generates Sphinx docs from srcs, inputs, and readme_files using tool
 
 Example:
   sphinx_generate_docs(
-    name = "sphinx_gen",
-    srcs = ["//:a_filegroup_with_rst_files"],
-    excluded_pkgs = ["a_pip_package_name_to_exclude"],
-    inputs = [
-        ":a_docgen_rule",
-    ],
-    readme_files = ["//:a_filegroup_with_md_files"],
-    tool = ":a_py_binary_having_sphinx_builder_as_main",
+      name = "sphinx_gen",
+      srcs = ["//:a_filegroup_with_rst_files"],
+      excluded_pkgs = ["a_pip_package_name_to_exclude"],
+      inputs = [
+          ":a_docgen_rule",
+      ],
+      readme_files = ["//:a_filegroup_with_md_files"],
+      tool = ":a_py_binary_having_sphinx_builder_as_main",
   )
 """
 )
@@ -200,10 +200,10 @@ A rule that generates rst files from classes of a given provider.
 
 Example:
   docgen(
-    name = "provider_name_gen",
-    provider = "provider_name",
-    resource_type = "resource_type.service",
-    tool = ":a_py_binary_having_sphinx_builder_as_main",
+      name = "provider_name_gen",
+      provider = "provider_name",
+      resource_type = "resource_type.service",
+      tool = ":a_py_binary_having_sphinx_builder_as_main",
   )
 """
 )

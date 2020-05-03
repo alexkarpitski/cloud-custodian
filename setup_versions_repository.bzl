@@ -1,4 +1,4 @@
-# template for generating bzl-file TODO: consider switching to stardoc
+# template for generating bzl-file
 VERSIONS_TEMPLATE = """
 
 _versions = {%s}
@@ -11,9 +11,7 @@ def setup_version(name):
 """
 
 def create_versions_bzl(ctx):
-    """
-    TODO: fill.
-    """
+    """Reads all setup_files defined in ctx and fills the template with them."""
     versions = []
     for setup_file_name in ctx.attr.setup_files:
         ctx.file("tmp", content = ctx.read(setup_file_name))
@@ -22,9 +20,7 @@ def create_versions_bzl(ctx):
     return VERSIONS_TEMPLATE % ",".join(versions)
 
 def _version_repo_impl(ctx):
-    """
-    TODO: fill.
-    """
+    """Creates a filled versions.bzl."""
     ctx.file("versions.bzl", create_versions_bzl(ctx))
     ctx.file("BUILD.bazel", "")
 
@@ -35,10 +31,14 @@ setup_versions_repository = repository_rule(
         "setup_files": attr.label_list(allow_files = True),
     },
     doc = """
-TODO: fill.
-Example rule documentation.
+A rule that contains all the setup.py files required to take versions from.
 
 Example:
-  Here is an example of how to use this rule.
+  setup_versions_repository(
+      name = "setup_versions",
+      setup_files = [
+          "//path/to:setup.py",
+      ],
+  )
 """
 )
