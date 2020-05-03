@@ -2,10 +2,7 @@ load("@rules_python//experimental/python:wheel.bzl", "py_package", "py_wheel")
 
 _FILE_HASH_SCRIPT_NAME = "file_hash.py"
 
-def _impl_a(ctx):
-    """
-    TODO: fill.
-    """
+def _impl_add_entry_points(ctx):
     inputs = ctx.attr.whl_file.data_runfiles.files.to_list()
     python_script_file = False
     for f in ctx.attr._add_ep_runner.data_runfiles.files.to_list():
@@ -32,7 +29,7 @@ def _impl_a(ctx):
     )
 
 _add_entry_points = rule(
-    implementation = _impl_a,
+    implementation = _impl_add_entry_points,
     attrs = {
         "entry_points": attr.string_list_dict(mandatory = True),
         "distr_info": attr.string(mandatory = True),
@@ -44,19 +41,10 @@ _add_entry_points = rule(
             default = ":run-add-ep-script",
         ),
     },
-    doc = """
-TODO: fill.
-Example rule documentation.
-
-Example:
-  Here is an example of how to use this rule.
-"""
 )
 
 def py_wheel_entry_points_ext(**kwargs):
-    """
-    TODO: fill.
-    """
+    """Calls the original py_wheel rule and adds custom entry_points with _add_entry_points."""
     if kwargs.get("entry_points"):
         entry_points = kwargs.pop("entry_points")
     else:

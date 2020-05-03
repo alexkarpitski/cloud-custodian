@@ -22,7 +22,6 @@ def create_versions_bzl(ctx):
 def _version_repo_impl(ctx):
     """Creates a filled versions.bzl."""
     ctx.file("versions.bzl", create_versions_bzl(ctx))
-    ctx.file("BUILD.bazel", "")
 
 setup_versions_repository = repository_rule(
     implementation = _version_repo_impl,
