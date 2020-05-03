@@ -1,20 +1,5 @@
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
-
-def add_exclude_pkgs_command(excluded_pkgs):
-    """
-    TODO: fill.
-    If there are excluded packages, add extra sed command to exclude these pkges from runfile
-    """
-    if excluded_pkgs == []:
-        return ""
-    excluded_pkgs = ["\"__%s\"" % i.replace("-", "_").replace(".", "_") for i in excluded_pkgs]
-    excluded_pkgs = "[%s]" % ",".join(excluded_pkgs)
-    exclude_pkgs_command = \
-        "| sed $'s/" + \
-        "  python_path_entries = \\[GetWindowsPathWithUNCPrefix(d) for d in python_path_entries\\]/" + \
-        "  python_path_entries = [GetWindowsPathWithUNCPrefix\\(d\\)" + \
-        " for d in python_path_entries if not list\\(filter\\(d.endswith, %s\\)\\)]/g'" % excluded_pkgs
-    return exclude_pkgs_command
+load("//:builddefs.bzl", "add_exclude_pkgs_command")
 
 def _impl(ctx):
     """
