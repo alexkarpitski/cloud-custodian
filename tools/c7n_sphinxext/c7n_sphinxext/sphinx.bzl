@@ -1,18 +1,18 @@
 OutputDocs = provider(
     doc = """
-TODO: fill.
-A provider with some really neat documentation.
-
-Contains information about some of my favorite things.
+A provider that contains output files information associated with a name.
 """,
-    fields = {'files' : 'TODO: fill',
-              'name' : 'TODO: fill'}
+    fields = {'files' : 'depset for output files of a provider',
+              'name' : 'a module name (provider) uniting files'}
 )
 
 def add_exclude_pkgs_command(excluded_pkgs):
-    """
-    TODO: fill.
-    If there are excluded packages, add extra sed command to exclude these pkges from runfile
+    """Add a sed command that excludes packages from runfiles.
+
+    If there are excluded packages, add extra sed command that excludes packages from runfiles. Otherwise, do nothing.
+
+    Args:
+      excluded_pkgs: A list of package names such as azure_cosmosdb_nspkg-2.1.3.
     """
     if excluded_pkgs == []:
         return ""
@@ -33,9 +33,7 @@ def add_exclude_pkgs_command(excluded_pkgs):
     return exclude_pkgs_command
 
 def patch_executable(ctx):
-    """
-    TODO: fill.
-    """
+    """Generates copies of the existing runfiles so that there are no excluded packages."""
     old_runner = ctx.executable.tool
     new_runner = ctx.actions.declare_file(ctx.attr.name)
     excluded_pkgs_command = add_exclude_pkgs_command(ctx.attr.excluded_pkgs)
@@ -60,10 +58,6 @@ def patch_executable(ctx):
     return new_runner, new_runfiles
 
 def _impl_sphinx_generated_docs(ctx):
-    """
-    TODO: fill.
-    Copy external and generated files, generate html docs
-    """
     ext_docs = ctx.actions.declare_directory("docs/")
     source = "/source"
     tools = "/tools"
@@ -156,19 +150,23 @@ sphinx_generate_docs = rule(
         "excluded_pkgs": attr.string_list(default = []),
     },
     doc = """
-TODO: fill.
-Example rule documentation.
+A rule that generates Sphinx docs from srcs, inputs, and readme_files using tool.
 
 Example:
-  Here is an example of how to use this rule.
+  sphinx_generate_docs(
+    name = "sphinx_gen",
+    srcs = ["//:a_filegroup_with_rst_files"],
+    excluded_pkgs = ["a_pip_package_name_to_exclude"],
+    inputs = [
+        ":a_docgen_rule",
+    ],
+    readme_files = ["//:a_filegroup_with_md_files"],
+    tool = ":a_py_binary_having_sphinx_builder_as_main",
+  )
 """
 )
 
 def _impl_rst_files_gen(ctx):
-    """
-    TODO: fill.
-    Generate rst files from classes
-    """
     old_runner = ctx.executable.tool
     tree = ctx.actions.declare_directory(ctx.attr.provider + "/resources")
     ctx.actions.run(
@@ -198,10 +196,14 @@ docgen = rule(
         ),
     },
     doc = """
-TODO: fill.
-Example rule documentation.
+A rule that generates rst files from classes of a given provider.
 
 Example:
-  Here is an example of how to use this rule.
+  docgen(
+    name = "provider_name_gen",
+    provider = "provider_name",
+    resource_type = "resource_type.service",
+    tool = ":a_py_binary_having_sphinx_builder_as_main",
+  )
 """
 )
