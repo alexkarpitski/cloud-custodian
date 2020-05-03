@@ -202,6 +202,19 @@ $ docker run -it \
   cloudcustodian/c7n run -v -s /home/custodian/output /home/custodian/policy.yml
 ```
 
+Several Cloud Custodian capabilities are also supported by [Bazel](https://docs.bazel.build/versions/master/install.html) (refer to bazel-*.yml in [workflows](.github/workflows) for additional details):
+
+```shell
+# run all tests
+bazel test ...
+# collect test coverage for c7n_gcp
+bazel coverage //tools/c7n_gcp/tests
+# package c7n_mailer into a .whl
+bazel build c7n_mailer_wheel
+# generate spinx docs
+bazel build //tools/c7n_sphinxext/c7n_sphinxext:sphinx_gen
+```
+
 Custodian supports other useful subcommands and options, including
 outputs to S3, CloudWatch metrics, STS role assumption. Policies go
 together like Lego bricks with actions and filters.
