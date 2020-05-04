@@ -118,6 +118,9 @@ py_library(
 
 py_library(
     name = "c7n_sphinxext",
-    srcs = glob(["*.py"]),
+    srcs = [
+        "__init__.py",
+        "docgen.py",
+    ],
     data = glob(["_templates/*.rst"]),
 )

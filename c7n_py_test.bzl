@@ -87,6 +87,7 @@ it's splitted for chunks, which is rougly equal in processing time and
 resource consumption.
 This function just goes through the list and divide it by test name.
 """
+
 def get_chunk(test_file_name):
     for chunk_name, last_test_in_chunk in C7N_TESTS_CHUNKS.items():
         if test_file_name <= last_test_in_chunk:

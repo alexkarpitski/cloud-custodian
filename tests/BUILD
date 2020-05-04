@@ -2,7 +2,7 @@ load("@rules_python//python:defs.bzl", "py_library")
 load("@pip_deps//:requirements.bzl", "requirement")
 load("//:c7n_py_test.bzl", "c7n_py_test")
 load("//:builddefs.bzl", "EXCLUDED_PKGS")
-load("//:c7n_py_test.bzl", "get_chunk", "C7N_TESTS_CHUNKS")
+load("//:c7n_py_test.bzl", "C7N_TESTS_CHUNKS", "get_chunk")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -20,12 +20,12 @@ EXCLUDED_TESTS = [
 py_library(
     name = "c7n_tests_common",
     testonly = True,
-    srcs = glob([
+    srcs = [
         "common.py",
-        "zpill.py",
         "test_offhours.py",
         "test_s3.py",
-    ]),
+        "zpill.py",
+    ],
     data = glob(["data/**/*"]) + [":placebo_data.zip"] + ["//:.bazel-coveragerc"],
     imports = [
         "../tools/c7n_azure/.",
