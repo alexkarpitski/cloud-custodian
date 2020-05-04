@@ -21,8 +21,45 @@ py_package(
 
 py_library(
     name = "c7n",
-    srcs = glob(["**/*.py"]),
+    srcs = [
+        "__init__.py",
+        "cache.py",
+        "cli.py",
+        "commands.py",
+        "config.py",
+        "credentials.py",
+        "ctx.py",
+        "cwe.py",
+        "exceptions.py",
+        "executor.py",
+        "handler.py",
+        "ipaddress.py",
+        "loader.py",
+        "log.py",
+        "logs_support.py",
+        "lookup.py",
+        "manager.py",
+        "mu.py",
+        "output.py",
+        "policy.py",
+        "provider.py",
+        "query.py",
+        "registry.py",
+        "resolver.py",
+        "schema.py",
+        "sqsexec.py",
+        "structure.py",
+        "tags.py",
+        "testing.py",
+        "utils.py",
+        "version.py",
+    ],
     deps = [
+        "//c7n/actions",
+        "//c7n/filters",
+        "//c7n/reports",
+        "//c7n/resources",
+        "//c7n/ufuncs",
         requirement("argcomplete"),
         requirement("boto3"),
         requirement("botocore"),
@@ -86,17 +123,23 @@ py_library(
 
 py_library(
     name = "actions",
-    srcs = glob(["actions/*.py"]),
+    deps = [
+        "//c7n/actions",
+    ],
 )
 
 py_library(
     name = "ufuncs",
-    srcs = glob(["ufuncs/*.py"]),
+    deps = [
+        "//c7n/ufuncs",
+    ],
 )
 
 py_library(
     name = "reports",
-    srcs = glob(["reports/*.py"]),
+    deps = [
+        "//c7n/reports",
+    ],
 )
 
 py_library(
@@ -114,19 +157,14 @@ py_library(
 )
 
 py_library(
-    name = "resource_map",
-    srcs = ["resources/resource_map.py"],
-)
-
-py_library(
     name = "resources",
-    srcs = glob(["resources/*.py"]),
     deps = [
         ":actions",
         ":credentials",
         ":log",
         ":query",
-        ":resource_map",
+        "//c7n/resources:resource_map",
+        "//c7n/resources",
         requirement("botocore"),
         requirement("boto3"),
         requirement("aws_xray_sdk"),
@@ -160,10 +198,10 @@ py_library(
 
 py_library(
     name = "filters",
-    srcs = glob(["filters/*.py"]),
     deps = [
         ":executor",
         ":manager",
+        "//c7n/filters",
         # transitive: revisions.py
         requirement("jsonpatch"),
     ],

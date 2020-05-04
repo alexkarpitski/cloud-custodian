@@ -58,8 +58,8 @@ py_library(
 
 py_library(
     name = "c7n_mailer_azure",
-    srcs = glob(["azure_mailer/*.py"]),
     deps = [
+        "//tools/c7n_mailer/c7n_mailer/azure_mailer",
         requirement("azure-common"),  # azure.profiles
         requirement("azure-keyvault"),
     ],
