@@ -1,13 +1,14 @@
 load("@rules_python//python:defs.bzl", "py_library")
 
-package(default_visibility = ["//visibility:private"])
-
 py_library(
-    name = "container_host",
+    name = "actions",
     srcs = [
         "__init__.py",
-        "host.py",
-        "modes.py",
+        "core.py",
+        "cscc.py",
+        "iampolicy.py",
+        "labels.py",
+        "notify.py",
     ],
     visibility = ["//visibility:public"],
 )

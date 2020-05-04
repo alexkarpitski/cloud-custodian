@@ -21,7 +21,6 @@ py_package(
 
 py_library(
     name = "actions",
-    srcs = glob(["actions/*.py"]),
     deps = [
         ":filters",
         ":provider",
@@ -30,33 +29,29 @@ py_library(
         "//c7n:lookup",
         "//c7n:resolver",
         "//c7n:utils",
+        "//tools/c7n_gcp/c7n_gcp/actions",
     ],
 )
 
 py_library(
     name = "filters",
-    srcs = glob(["filters/*.py"]),
     deps = [
         "//c7n:filters",
         "//c7n:utils",
+        "//tools/c7n_gcp/c7n_gcp/filters",
     ],
 )
 
 py_library(
-    name = "resource_map",
-    srcs = ["resources/resource_map.py"],
-)
-
-py_library(
     name = "resources",
-    srcs = glob(["resources/*.py"]),
     deps = [
         ":actions",
         ":provider",
         ":query",
-        ":resource_map",
         "//c7n:filters",
         "//c7n:utils",
+        "//tools/c7n_gcp/c7n_gcp/resources",
+        "//tools/c7n_gcp/c7n_gcp/resources:resource_map",
         requirement("jmespath"),
     ],
 )
