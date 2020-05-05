@@ -1,8 +1,17 @@
+package(default_visibility = [
+    "//:__pkg__",
+    "//tests:__pkg__",
+    "//tools/c7n_azure/c7n_azure/actions:__pkg__",
+    "//tools/c7n_azure/c7n_azure/resources:__pkg__",
+    "//tools/c7n_azure/tests_azure:__pkg__",
+    "//tools/c7n_kube/tests:__pkg__",
+    "//tools/c7n_mailer/tests:__pkg__",
+    "//tools/c7n_sphinxext/c7n_sphinxext:__pkg__",
+])
+
 load("@rules_python//python:defs.bzl", "py_library")
 load("@rules_python//experimental/python:wheel.bzl", "py_package")
 load("@azure_py_deps//:requirements.bzl", "requirement")
-
-package(default_visibility = ["//visibility:public"])
 
 py_library(
     name = "c7n_azure_lib",

@@ -1,4 +1,10 @@
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = [
+    "//:__pkg__",
+    "//tests:__pkg__",
+    "//tools/c7n_gcp/tests:__pkg__",
+    "//tools/c7n_kube/tests:__pkg__",
+    "//tools/c7n_sphinxext/c7n_sphinxext:__pkg__",
+])
 
 load("@rules_python//python:defs.bzl", "py_library")
 load("@rules_python//experimental/python:wheel.bzl", "py_package")
