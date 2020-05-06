@@ -1,7 +1,7 @@
 load("@rules_python//python:defs.bzl", "py_library")
 load("//:c7n_py_test.bzl", "c7n_py_test")
 
-package(default_visibility = ["//visibility:private"])
+package(default_visibility = ["//visibility:public"])
 
 py_library(
     name = "gcp_common",

@@ -3,7 +3,7 @@ load("@azure_py_deps//:requirements.bzl", "requirement")
 load("//:c7n_py_test.bzl", "c7n_py_test")
 load("//:builddefs.bzl", "EXCLUDED_PKGS")
 
-package(default_visibility = ["//visibility:private"])
+package(default_visibility = ["//visibility:public"])
 
 py_library(
     name = "azure_common",
@@ -13,7 +13,6 @@ py_library(
     ],
     imports = [".."],
     srcs_version = "PY2AND3",
-    visibility = ["//visibility:public"],
     deps = [
         ":azure_serializer",
         ":tools_tags",
@@ -28,11 +27,13 @@ py_library(
     name = "azure_serializer",
     testonly = True,
     srcs = ["azure_serializer.py"],
+    visibility = ["//visibility:private"],
 )
 
 py_library(
     name = "tools_tags",
     srcs = ["tools_tags.py"],
+    visibility = ["//visibility:private"],
     deps = [requirement("azure-mgmt-resourcegraph")],
 )
 
