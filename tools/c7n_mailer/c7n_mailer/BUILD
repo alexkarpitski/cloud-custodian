@@ -1,4 +1,7 @@
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = [
+    "//:__pkg__",
+    "//tools/c7n_mailer/tests:__pkg__",
+])
 
 load("@rules_python//python:defs.bzl", "py_library")
 load("@mailer_py_deps//:requirements.bzl", "requirement")

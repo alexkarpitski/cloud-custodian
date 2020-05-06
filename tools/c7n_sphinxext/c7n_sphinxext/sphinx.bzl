@@ -4,8 +4,10 @@ OutputDocs = provider(
     doc = """
 A provider that contains output files information associated with a name.
 """,
-    fields = {'files' : 'depset for output files of a provider',
-              'name' : 'a module name (provider) uniting files'}
+    fields = {
+        "files": "depset for output files of a provider",
+        "name": "a module name (provider) uniting files",
+    },
 )
 
 def patch_executable(ctx):
@@ -139,7 +141,7 @@ Example:
       readme_files = ["//:a_filegroup_with_md_files"],
       tool = ":a_py_binary_having_sphinx_builder_as_main",
   )
-"""
+""",
 )
 
 def _impl_rst_files_gen(ctx):
@@ -181,5 +183,5 @@ Example:
       resource_type = "resource_type.service",
       tool = ":a_py_binary_having_sphinx_builder_as_main",
   )
-"""
+""",
 )

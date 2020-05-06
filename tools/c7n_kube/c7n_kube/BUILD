@@ -1,4 +1,9 @@
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = [
+    "//:__pkg__",
+    "//tests:__pkg__",
+    "//tools/c7n_kube/tests:__pkg__",
+    "//tools/c7n_sphinxext/c7n_sphinxext:__pkg__",
+])
 
 load("@rules_python//python:defs.bzl", "py_library")
 load("@kube_py_deps//:requirements.bzl", "all_requirements", "requirement")

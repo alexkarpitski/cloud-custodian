@@ -40,5 +40,5 @@ Example:
           "//path/to:setup.py",
       ],
   )
-"""
+""",
 )
