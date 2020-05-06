@@ -1,19 +1,17 @@
 load("//:c7n_py_test.bzl", "c7n_py_test")
 load("@mailer_py_deps//:requirements.bzl", "requirement")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//visibility:private"])
 
 py_library(
     name = "test_data",
     data = glob(["test-templates/*.j2"]),
-    visibility = ["//visibility:private"],
 )
 
 py_library(
     name = "test_deps",
     srcs = ["common.py"],
     data = ["example.jinja"] + ["//:.bazel-coveragerc"],
-    visibility = ["//visibility:private"],
     deps = [
         ":test_data",
         "//c7n",

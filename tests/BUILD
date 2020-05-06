@@ -4,7 +4,7 @@ load("//:c7n_py_test.bzl", "c7n_py_test")
 load("//:builddefs.bzl", "EXCLUDED_PKGS")
 load("//:c7n_py_test.bzl", "C7N_TESTS_CHUNKS", "get_chunk")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//visibility:private"])
 
 # TODO: get rid of excluded tests; remember to update bazel-test-excluded.yml
 EXCLUDED_TESTS = [

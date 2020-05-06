@@ -3,14 +3,13 @@ load("@kube_py_deps//:requirements.bzl", "all_requirements", "requirement")
 load("//:c7n_py_test.bzl", "c7n_py_test")
 load("//:builddefs.bzl", "EXCLUDED_PKGS")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//visibility:private"])
 
 pip_deps = [i for i in all_requirements]
 
 py_library(
     name = "common_kube_deps",
     testonly = True,
-    visibility = ["//visibility:private"],
     deps = [
         "//tools/c7n_azure/c7n_azure:c7n_azure_lib",
         "//tools/c7n_azure/c7n_azure:entry",
@@ -36,6 +35,7 @@ py_library(
         "../../c7n_azure/c7n_gcp/.",
         "../../c7n_gcp/.",
     ],
+    visibility = ["//visibility:public"],
     deps = [
         ":common_kube_deps",
         "//c7n:resources",
