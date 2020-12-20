@@ -74,6 +74,16 @@ def get_default_project():
             return os.environ[k]
 
 
+def get_default_folder_id():
+    org_key = 'CLOUDSDK_FOLDER_ID'
+    return os.environ[org_key] if org_key in os.environ else None
+
+
+def get_default_organization_id():
+    org_key = 'CLOUDSDK_ORGANIZATION_ID'
+    return os.environ[org_key] if org_key in os.environ else None
+
+
 class PaginationNotSupported(Exception):
     """Pagination not supported on this api."""
 
@@ -185,6 +195,8 @@ class Session:
         self._http = http
 
         self.project_id = project_id
+        self.folder_id = get_default_folder_id()
+        self.organization_id = get_default_organization_id()
 
     def __repr__(self):
         """The object representation.
@@ -193,6 +205,24 @@ class Session:
             str: The object representation.
         """
         return '<gcp-session: http=%s>' % (self._http,)
+
+    def has_default_folder_id(self):
+        return self.folder_id is not None
+
+    def get_default_folder_id(self):
+        if self.has_default_folder_id():
+            return self.folder_id
+
+        raise ValueError("No GCP Folder ID set - set CLOUDSDK_FOLDER_ID")
+
+    def has_default_organization_id(self):
+        return self.organization_id is not None
+
+    def get_default_organization_id(self):
+        if self.has_default_organization_id():
+            return self.organization_id
+
+        raise ValueError("No GCP Organization ID set - set CLOUDSDK_ORGANIZATION_ID")
 
     def get_default_project(self):
         if self.project_id:

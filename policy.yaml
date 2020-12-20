@@ -1,0 +1,15 @@
+#policies:
+#  - name: get-ssl
+#    description: |
+#     Ensure Cloud Load Balancer has ssl restrictive profile attached.
+#     Action:
+#      - notify
+#    resource: gcp.loadbalancer-get-ssl
+
+policies:
+ - name: get-ssl
+   resource: gcp.loadbalancer-get-ssl
+   mode:
+     type: gcp-audit
+     methods:
+      -  v1.compute.targetSslProxies.setSslPolicy

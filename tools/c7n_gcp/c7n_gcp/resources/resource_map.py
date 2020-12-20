@@ -40,6 +40,7 @@ ResourceMap = {
         "c7n_gcp.resources.loadbalancer.LoadBalancingBackendService"),
     "gcp.loadbalancer-forwarding-rule": (
         "c7n_gcp.resources.loadbalancer.LoadBalancingForwardingRule"),
+    "gcp.loadbalancer-get-ssl": "c7n_gcp.resources.loadbalancer.LoadBalancingTargetHttpsProxyGETSSL",
     "gcp.loadbalancer-global-address": "c7n_gcp.resources.loadbalancer.LoadBalancingGlobalAddress",
     "gcp.loadbalancer-global-forwarding-rule": (
         "c7n_gcp.resources.loadbalancer.LoadBalancingGlobalForwardingRule"),

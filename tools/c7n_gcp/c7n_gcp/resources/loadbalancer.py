@@ -1,9 +1,10 @@
-# Copyright The Cloud Custodian Authors.
-# SPDX-License-Identifier: Apache-2.0
+import jmespath
+import re
+
 from c7n.utils import type_schema, local_session
 from c7n_gcp.actions import MethodAction
 from c7n_gcp.provider import resources
-from c7n_gcp.query import QueryResourceManager, TypeInfo
+from c7n_gcp.query import QueryResourceManager, TypeInfo, ChildResourceManager, ChildTypeInfo
 
 
 @resources.register('loadbalancer-address')
@@ -104,8 +105,9 @@ class LoadBalancingTargetSslProxy(QueryResourceManager):
         enum_spec = ('list', 'items[]', None)
         scope = 'project'
         name = id = 'name'
+        get_requires_event = True
         default_report_fields = [
-            "name", "description", "creationTimestamp", "service", "sslPolicy"
+            "name", "description", "creationTimestamp", "service", "sslPolicy", 
         ]
         asset_type = "compute.googleapis.com/TargetSslProxy"
 
@@ -129,26 +131,42 @@ class LoadBalancingSslPolicy(QueryResourceManager):
         scope = 'project'
         name = id = 'name'
         default_report_fields = [
-            "name", "description", "profile", "minTlsVersion"
+            "name", "description", "profile", "minTlsVersion", "fingerprint"
         ]
 
         @staticmethod
         def get(client, resource_info):
             return client.execute_command('get', {
                 'project': resource_info['project_id'],
+                'fingerprint': resource_info['fingerprint'],
                 'sslPolicy': resource_info[
                     'resourceName'].rsplit('/', 1)[-1]})
 
+
+@LoadBalancingSslPolicy.action_registry.register('patch')
+class LoadBalancingSslPolicyPatch(MethodAction):
+    """The action is used for Load Balancing SSL Policies delete.
+
+    """
+    schema = type_schema('patch')
+    method_spec = {'op': 'patch'}
+
+    def get_resource_params(self, model, resource):
+        project = local_session(self.manager.source.query.session_factory).get_default_project()
+        print(resource)
+        return {
+            'project': project,
+            'sslPolicy': resource['name'],
+            'body':{'fingerprint': resource['fingerprint'],
+                    "profile": "Restricted",}
+             }
 
 @LoadBalancingSslPolicy.action_registry.register('delete')
 class LoadBalancingSslPolicyDelete(MethodAction):
     """The action is used for Load Balancing SSL Policies delete.
     GCP action is https://cloud.google.com/compute/docs/reference/rest/v1/sslPolicies/delete.
-
     Example:
-
     .. code-block:: yaml
-
         policies:
           - name: gcp-load-balancing-ssl-policies-delete
             resource: gcp.loadbalancer-ssl-policy
@@ -165,10 +183,11 @@ class LoadBalancingSslPolicyDelete(MethodAction):
 
     def get_resource_params(self, model, resource):
         project = local_session(self.manager.source.query.session_factory).get_default_project()
+        
         return {
             'project': project,
-            'sslPolicy': resource['name']}
-
+            'sslPolicy': resource['name'],
+            }
 
 @resources.register('loadbalancer-ssl-certificate')
 class LoadBalancingSslCertificate(QueryResourceManager):
@@ -217,6 +236,51 @@ class LoadBalancingTargetHttpsProxy(QueryResourceManager):
                     'resourceName'].rsplit('/', 1)[-1]})
 
 
+@resources.register('loadbalancer-get-ssl')
+class LoadBalancingTargetHttpsProxyGETSSL(ChildResourceManager):
+
+    class resource_type(ChildTypeInfo):
+        service = 'compute'
+        version = 'v1'
+        component = 'sslPolicies'
+        enum_spec = ('list', 'items[]', None)
+        scope = 'project'
+        name = id = 'name'
+        get_requires_event = True
+        default_report_fields = [
+            name, "description", "sslPolicy", "urlMap"
+        ]
+        parent_spec = {
+            'resource': 'loadbalancer-target-ssl-proxy',
+            # 'parent_get_params': [
+            #     ('project_id', 'project_id'),
+            #     ('parent_resource_name', 'resourceName')],
+        }
+
+        @staticmethod
+        def get(client, event):
+            self_link = jmespath.search('protoPayload.request.sslPolicy', event)
+            parent_resource_name = jmespath.search('protoPayload.resourceName', event)
+            project = re.match('.*projects/(.*?)/global/targetSslProxies/.*', parent_resource_name).group(1)
+            ssl_policy = {'project_id': project, 'parent_resource_name': parent_resource_name}
+            if self_link:
+                name = re.match('.*projects/.*?/global/sslPolicies/(.*)', self_link).group(1)
+                ssl_policy.update(client.execute_command('get', {'project': project, 'sslPolicy': name}))
+            return ssl_policy
+
+    def _get_child_enum_args(self, parent_instance):
+        child_enum_args = {}
+        ssl_policy = parent_instance['sslPolicy']
+        if ssl_policy:
+            ssl_policy_name = re.match('.*/global/sslPolicies/(.*)', ssl_policy).group(1)
+            child_enum_args['filter'] = 'name = %s' % ssl_policy_name
+        return child_enum_args
+
+    def _get_parent_resource_info(self, child_instance):
+        return {'project_id': child_instance['project_id'],
+                'resourceName': child_instance['parent_resource_name']}
+
+
 @resources.register('loadbalancer-backend-bucket')
 class LoadBalancingBackendBucket(QueryResourceManager):
     """GCP resource: https://cloud.google.com/compute/docs/reference/rest/v1/backendBuckets
@@ -245,11 +309,8 @@ class LoadBalancingBackendBucket(QueryResourceManager):
 class LoadBalancingBackendBucketDelete(MethodAction):
     """The action is used for Load Balancing Backend Buckets delete.
     GCP action is https://cloud.google.com/compute/docs/reference/rest/v1/backendBuckets/delete.
-
     Example:
-
     .. code-block:: yaml
-
         policies:
           - name: gcp-loadbalancer-backend-buckets-delete
             resource: gcp.loadbalancer-backend-bucket
@@ -507,3 +568,55 @@ class LoadBalancingGlobalAddress(QueryResourceManager):
             return client.execute_command('get', {
                 'project': resource_info['project_id'],
                 'address': resource_info['resourceName'].rsplit('/', 1)[-1]})
+
+@LoadBalancingTargetHttpsProxy.action_registry.register('delete')
+class LoadBalancingHTTPSPolicyDelete(MethodAction):
+    """The action is used for Load Balancing SSL Policies delete.
+    GCP action is https://cloud.google.com/compute/docs/reference/rest/v1/sslPolicies/delete.
+    Example:
+    .. code-block:: yaml
+        policies:
+          - name: gcp-load-balancing-ssl-policies-delete
+            resource: gcp.loadbalancer-ssl-policy
+            filters:
+              - type: value
+                key: minTlsVersion
+                op: ne
+                value: TLS_1_2
+            actions:
+              - type: delete
+    """
+    schema = type_schema('delete')
+    method_spec = {'op': 'delete'}
+
+    def get_resource_params(self, model, resource):
+        project = local_session(self.manager.source.query.session_factory).get_default_project()
+        return {
+            'project': project,
+            'sslPolicy': resource['name']}
+
+@LoadBalancingTargetHttpProxy.action_registry.register('delete')
+class LoadBalancingHTTPPolicyDelete(MethodAction):
+    """The action is used for Load Balancing SSL Policies delete.
+    GCP action is https://cloud.google.com/compute/docs/reference/rest/v1/sslPolicies/delete.
+    Example:
+    .. code-block:: yaml
+        policies:
+          - name: gcp-load-balancing-ssl-policies-delete
+            resource: gcp.loadbalancer-ssl-policy
+            filters:
+              - type: value
+                key: minTlsVersion
+                op: ne
+                value: TLS_1_2
+            actions:
+              - type: delete
+    """
+    schema = type_schema('delete')
+    method_spec = {'op': 'delete'}
+
+    def get_resource_params(self, model, resource):
+        project = local_session(self.manager.source.query.session_factory).get_default_project()
+        return {
+            'project': project,
+            'sslPolicy': resource['name']}

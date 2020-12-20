@@ -594,7 +594,7 @@ class PeriodicEvent(EventSource):
         return job
 
 
-LogInfo = namedtuple('LogInfo', 'name scope_type scope_id id')
+LogInfo = namedtuple('LogInfo', 'name scope_type scope_id id use_project_sink')
 
 
 class LogSubscriber(EventSource):
@@ -617,9 +617,16 @@ class LogSubscriber(EventSource):
 
     def get_log(self):
         scope_type, scope_id, _, log_id = self.data['log'].split('/', 3)
+        use_project_sink = True
+        has_default_folder_id = self.session.has_default_folder_id()
+        if has_default_folder_id or self.session.has_default_organization_id():
+            scope_type = 'folders' if has_default_folder_id else 'organizations'
+            scope_id = self.session.get_default_folder_id() \
+                if has_default_folder_id else self.session.get_default_organization_id()
+            use_project_sink = False
         return LogInfo(
             scope_type=scope_type, scope_id=scope_id,
-            id=log_id, name=self.data['log'])
+            id=log_id, name=self.data['log'], use_project_sink=use_project_sink)
 
     def get_log_filter(self):
         return self.data.get('filter')
@@ -627,7 +634,7 @@ class LogSubscriber(EventSource):
     def get_parent(self, log_info):
         """Get the parent container for the log sink"""
         if self.data.get('scope', 'log') == 'log':
-            if log_info.scope_type != 'projects':
+            if log_info.use_project_sink and log_info.scope_type != 'projects':
                 raise ValueError("Invalid log subscriber scope")
             parent = "%s/%s" % (log_info.scope_type, log_info.scope_id)
         elif self.data['scope'] == 'project':
@@ -735,8 +742,9 @@ class ApiSubscriber(EventSource):
         log_name = "{}/{}/logs/cloudaudit.googleapis.com%2Factivity".format(
             self.data.get('scope', 'projects'),
             self.session.get_default_project())
-        log_filter = 'logName = "%s"' % log_name
-        log_filter += " AND protoPayload.methodName = (%s)" % (
+        filter_by_log_name = not (self.session.has_default_organization_id() or self.session.has_default_folder_id())
+        log_filter = 'logName = "%s" AND ' % log_name if filter_by_log_name else ''
+        log_filter += "protoPayload.methodName = (%s)" % (
             ' OR '.join(['"%s"' % m for m in self.data['methods']]))
         return {
             'topic': '{}audit-{}'.format(self.prefix, func.name),
