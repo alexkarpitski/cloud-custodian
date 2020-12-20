@@ -281,6 +281,38 @@ class LoadBalancingTargetHttpsProxyGETSSL(ChildResourceManager):
                 'resourceName': child_instance['parent_resource_name']}
 
 
+@resources.register('loadbalancer-get-ssl-certificate')
+class LoadBalancingTargetHttpsProxyGETSSLCERTIFICATE(ChildResourceManager):
+
+    class resource_type(ChildTypeInfo):
+        service = 'compute'
+        version = 'v1'
+        component = 'sslCertificates'
+        enum_spec = ('list', 'items[]', None)
+        scope = 'project'
+        name = id = 'name'
+        get_requires_event = True
+        default_report_fields = [
+            name, "description", "sslCertificate"
+        ]
+        parent_spec = {
+            'resource': 'loadbalancer-target-ssl-proxy',
+            # 'parent_get_params': [
+            #     ('project_id', 'project_id'),
+            #     ('parent_resource_name', 'resourceName')],
+        }
+
+    def _get_child_enum_args(self, parent_instance):
+        child_enum_args = {}
+        ssl_certificates = parent_instance['sslCertificates']
+        filter_parts = ['(name = %s)' %
+            re.match('.*/global/sslCertificates/(.*)', ssl_certificate).group(1)
+            for ssl_certificate in ([] if ssl_certificates is None else ssl_certificates)]
+        if filter_parts:
+            child_enum_args['filter'] = str.join(' OR ', filter_parts)
+        return child_enum_args
+
+
 @resources.register('loadbalancer-backend-bucket')
 class LoadBalancingBackendBucket(QueryResourceManager):
     """GCP resource: https://cloud.google.com/compute/docs/reference/rest/v1/backendBuckets

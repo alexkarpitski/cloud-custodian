@@ -1,15 +1,16 @@
-#policies:
-#  - name: get-ssl
-#    description: |
-#     Ensure Cloud Load Balancer has ssl restrictive profile attached.
-#     Action:
-#      - notify
-#    resource: gcp.loadbalancer-get-ssl
-
 policies:
- - name: get-ssl
-   resource: gcp.loadbalancer-get-ssl
-   mode:
-     type: gcp-audit
-     methods:
-      -  v1.compute.targetSslProxies.setSslPolicy
+ - name: get-expiring-ssl-certificates
+   resource: gcp.loadbalancer-get-ssl-certificate
+   filters:
+   - type: value
+     key: expireTime
+     op: less-than
+     value_type: expiration
+     value: 30
+#   - type: value
+#     key: creationTimestamp
+#     op: greater-than
+#     value_type: age
+#     value: 8
+   actions:
+     - notify
