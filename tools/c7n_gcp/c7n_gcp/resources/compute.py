@@ -1,17 +1,23 @@
 # Copyright The Cloud Custodian Authors.
 # SPDX-License-Identifier: Apache-2.0
 
+import json
+import jmespath
 import re
 
 from datetime import datetime
 
-from c7n.utils import type_schema
+from c7n.exceptions import PolicyValidationError
+from c7n.utils import local_session, type_schema
 
 from c7n_gcp.actions import MethodAction
 from c7n_gcp.provider import resources
 from c7n_gcp.query import QueryResourceManager, TypeInfo
 
 from c7n.filters.offhours import OffHour, OnHour
+from c7n.filters import ValueFilter
+
+from google.cloud.storage import client
 
 
 @resources.register('instance')
@@ -62,6 +68,65 @@ class InstanceOnHour(OnHour):
 
     def get_tag_value(self, instance):
         return instance.get('labels', {}).get(self.tag_key, False)
+
+
+@Instance.filter_registry.register('invalid-network')
+class InvalidNetworkFilter(ValueFilter):
+    """
+    Instance's attached network interfaces short names are compared to the target
+    that is stored at the specified jmespath in a file in a bucket.
+    The filter returns the ones that do not match the target ('invalid' networks).
+    Usage example:
+      filters:
+      - type: invalid-network
+        bucket-name: bucket-id
+        config-path: some/path/to.json
+        valid-network-jmespath: path.to.network.key
+    """
+    bucket_name_key = 'bucket-name'
+    config_path_key = 'config-path'
+    valid_network_jmespath_key = 'valid-network-jmespath'
+    schema = type_schema('invalid-network', rinherit={
+        'type': 'object',
+        'additionalProperties': False,
+        'required': ['type'],
+        'properties': {
+            bucket_name_key: {'$ref': '#/definitions/filters_common/value'},
+            config_path_key: {'$ref': '#/definitions/filters_common/value'},
+            valid_network_jmespath_key: {'$ref': '#/definitions/filters_common/value'},
+        },
+    })
+    required_keys = [bucket_name_key, config_path_key, valid_network_jmespath_key]
+
+    def validate(self):
+        for required_key in InvalidNetworkFilter.required_keys:
+            if required_key not in self.data:
+                raise PolicyValidationError("missing required key: %s" % required_key)
+
+    def process(self, resources, event=None):
+        valid_network = self.get_valid_network()
+        invalid_network_instances = []
+        for resource in resources:
+            is_invalid_network_instance = False
+            if 'networkInterfaces' in resource:
+                for network_interface in resource['networkInterfaces']:
+                    actual_network = re.match('.*/(.*?)$', network_interface['network']).group(1)
+                    if actual_network != valid_network:
+                        is_invalid_network_instance = True
+                        break
+            if is_invalid_network_instance:
+                invalid_network_instances.append(resource)
+        return invalid_network_instances
+
+    def get_valid_network(self):
+        storage_client = client.Client()
+        bucket_object_text = storage_client.bucket(
+            self.data[InvalidNetworkFilter.bucket_name_key]
+        ).get_blob(self.data[InvalidNetworkFilter.config_path_key]).download_as_text()
+        bucket_object_json = json.loads(bucket_object_text)
+        valid_network = jmespath.search(
+            self.data[InvalidNetworkFilter.valid_network_jmespath_key], bucket_object_json)
+        return valid_network
 
 
 class InstanceAction(MethodAction):

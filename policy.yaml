@@ -1,16 +1,14 @@
 policies:
- - name: get-expiring-ssl-certificates
-   resource: gcp.loadbalancer-get-ssl-certificate
-   filters:
-   - type: value
-     key: expireTime
-     op: less-than
-     value_type: expiration
-     value: 30
-#   - type: value
-#     key: creationTimestamp
-#     op: greater-than
-#     value_type: age
-#     value: 8
-   actions:
-     - notify
+- name: gcp-instance-invalid-network-delete
+  resource: gcp.instance
+  mode:
+    type: gcp-audit
+    methods:
+    - beta.compute.instances.insert
+  filters:
+  - type: invalid-network
+    bucket-name: custodian-org-project.appspot.com
+    config-path: test/envs1.json
+    valid-network-jmespath: vpcx.region_subnet
+  actions:
+    - delete

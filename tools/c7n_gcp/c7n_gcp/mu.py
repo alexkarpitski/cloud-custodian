@@ -39,6 +39,7 @@ def custodian_archive(packages=None, deps=()):
         'retrying',
         'python-dateutil',
         'ratelimiter',
+        'google-cloud-storage',
         'google-auth',
         'google-auth-httplib2',
         'google-api-python-client'))
